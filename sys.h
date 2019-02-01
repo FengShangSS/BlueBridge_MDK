@@ -1,7 +1,11 @@
+#ifndef __SYS_H__
+#define __SYS_H__
+
 #include <IAP15F2K61S2.H>
 
 #define uchar unsigned char
 #define uint unsigned int
+#define uint16 unsigned short
 	
 #define NONE 0x1f
 #define LEDS 0x80
@@ -60,3 +64,5 @@ void Timer1Init(void);
 void display(void);
 void led_control(uchar ledbit, uchar command);
 void relay_or_buzzer(uchar choice, uchar command);
+
+#endif
