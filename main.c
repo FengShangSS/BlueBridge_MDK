@@ -1,5 +1,6 @@
 #include "sys.h"
 #include "keyscan.h"
+#include "ds1302.h"
 
 /*------------------------------------------------------------------
 -------------------------V0.0.1-----------------------------------
@@ -15,17 +16,28 @@ USAGE:
 Key
 keyScan()
 keyProcess(KEY_t *in, OUTPUT_t *out)
+
+-------------------------V0.0.3-----------------------------------
+DATE:2019.2.01		TIME:22:24		AUTHOR:FS
+USAGE:
+Time.set[7]
+Time.read[7]
+Ds_Control(TIME_t *time, uchar command)
 -------------------------------------------------------------------*/
 
 void freshDisbuff(void);
+void timeUpdate(void);
 
 COUNT_t Count;
 FLAG_t Flag;
 OUTPUT_t Output1;
+TIME_t Time = {55,59,23, 1,2, 5, 19,\
+				0,0,0, 0,0, 0, 0};
 
 void main()
 {
 	sysInit();
+	Ds_Control(&Time, WRITE);
 	while(1)
 	{
 		if(Key.timeOk == 1)
@@ -35,7 +47,8 @@ void main()
 		}
 		
 		keyProcess(&Key, &Output1);
-		freshDisbuff();
+//		freshDisbuff();
+		timeUpdate();
 	}
 }
 
@@ -44,6 +57,19 @@ void freshDisbuff(void)
 	Smg.disbuff[5] = Output1.dat[0] / 100;
 	Smg.disbuff[6] = Output1.dat[0] % 100 / 10;
 	Smg.disbuff[7] = Output1.dat[0] % 10;
+}
+
+void timeUpdate(void)
+{
+	Ds_Control(&Time, READ);
+	Smg.disbuff[0] = Time.read[2] / 10;
+	Smg.disbuff[1] = Time.read[2] % 10;
+	Smg.disbuff[2] = 10;
+	Smg.disbuff[3] = Time.read[1] / 10;
+	Smg.disbuff[4] = Time.read[1] % 10;
+	Smg.disbuff[5] = 10;
+	Smg.disbuff[6] = Time.read[0] / 10;
+	Smg.disbuff[7] = Time.read[0] % 10;
 }
 
 void timer0() interrupt 1
