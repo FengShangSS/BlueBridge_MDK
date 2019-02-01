@@ -35,11 +35,14 @@ sbit RST=P1^3;
 
 #define READ 0
 #define WRITE 1
+#define RUN 2
+#define STOP 3
 
 typedef struct
 {
 	uchar set[7];
 	uchar read[7];
+	uchar runFlag;
 }TIME_t;
 
 void Ds_Control(TIME_t *time, uchar command);

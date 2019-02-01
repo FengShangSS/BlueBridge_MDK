@@ -90,6 +90,7 @@ void Ds_Control(TIME_t *time, uchar command)
 		{
 			Ds1302_Single_Byte_Write(add, time->set[i]);
 		}
+		time->runFlag = 1;
 	}
 	else if(command == READ)
 	{
@@ -98,6 +99,17 @@ void Ds_Control(TIME_t *time, uchar command)
 		{
 			time->read[i] = Ds1302_Single_Byte_Read(add);
 		}
+	}
+	else if(command == RUN)
+	{
+		Ds1302_Single_Byte_Write(ds1302_sec_addr, time->read[0]);
+		time->runFlag = 1;
+	}
+	else if(command == STOP)
+	{
+		time->read[0] = Ds1302_Single_Byte_Read(ds1302_sec_addr+1);
+		Ds1302_Single_Byte_Write(ds1302_sec_addr, 0x80);
+		time->runFlag = 0;
 	}
 	
 	Ds1302_Single_Byte_Write(ds1302_control_addr, 0x80);

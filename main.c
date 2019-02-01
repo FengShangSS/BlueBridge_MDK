@@ -32,7 +32,8 @@ COUNT_t Count;
 FLAG_t Flag;
 OUTPUT_t Output1;
 TIME_t Time = {55,59,23, 1,2, 5, 19,\
-				0,0,0, 0,0, 0, 0};
+				0,0,0, 0,0, 0, 0,\
+				0};
 
 void main()
 {
@@ -47,8 +48,21 @@ void main()
 		}
 		
 		keyProcess(&Key, &Output1);
+		
+		if(Output1.dat[0] == 1)
+		{
+			if(Time.runFlag)
+				Ds_Control(&Time, STOP);
+		}
+		else
+		{
+			if(!Time.runFlag)
+				Ds_Control(&Time, RUN);
+		}
+		
 //		freshDisbuff();
-		timeUpdate();
+		if(Time.runFlag)
+			timeUpdate();
 	}
 }
 
