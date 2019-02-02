@@ -1,7 +1,7 @@
 #ifndef __KEYSCAN_H__
 #define __KEYSCAN_H__
-
 #include "sys.h"
+#include "menu.h"
 
 #define KEYDEBOUNCE 5
 
@@ -34,13 +34,8 @@ typedef struct
 	uchar longPressFlag;
 }KEY_t;
 
-typedef struct
-{
-	uchar dat[4];
-}OUTPUT_t;
-
 extern KEY_t Key;
 
 void keyScan(void);
-void keyProcess(KEY_t *in, OUTPUT_t *out);
+void keyProcess(KEY_t *in, MENU_t *menu);
 #endif

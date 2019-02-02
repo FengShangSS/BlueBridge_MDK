@@ -1,6 +1,7 @@
-#include "sys.h"
+#include "menu.h"
 #include "keyscan.h"
 #include "ds1302.h"
+#include "onewire.h"
 
 /*------------------------------------------------------------------
 -------------------------V0.0.1-----------------------------------
@@ -15,7 +16,7 @@ DATE:2019.2.01		TIME:19:31		AUTHOR:FS
 USAGE:
 Key
 keyScan()
-keyProcess(KEY_t *in, OUTPUT_t *out)
+keyProcess(KEY_t *in, MENU_t *menu)
 
 -------------------------V0.0.3-----------------------------------
 DATE:2019.2.01		TIME:22:24		AUTHOR:FS
@@ -23,17 +24,24 @@ USAGE:
 Time.set[7]
 Time.read[7]
 Ds_Control(TIME_t *time, uchar command)
+
+-------------------------V0.0.4-----------------------------------
+DATE:2019.2.02		TIME:15:37		AUTHOR:FS
+USAGE:
+Temperature.integer
+Temperature.fraction
+temp_read(TEMP_t *temperature)
+
+Menu.mode
+Menu.sub[]
+menuUpdate(MENU_t *menu)
+freshDisbuff(SMG_t *smg)
+
 -------------------------------------------------------------------*/
 
-void freshDisbuff(void);
-void timeUpdate(void);
 
 COUNT_t Count;
 FLAG_t Flag;
-OUTPUT_t Output1;
-TIME_t Time = {55,59,23, 1,2, 5, 19,\
-				0,0,0, 0,0, 0, 0,\
-				0};
 
 void main()
 {
@@ -41,54 +49,35 @@ void main()
 	Ds_Control(&Time, WRITE);
 	while(1)
 	{
+		if(Temperature.timeOk == 1)
+		{
+			Temperature.timeOk = 0;
+			temp_read(&Temperature);
+		}
+		
 		if(Key.timeOk == 1)
 		{
 			Key.timeOk = 0;
 			keyScan();
+			keyProcess(&Key, &Menu);
 		}
 		
-		keyProcess(&Key, &Output1);
-		
-		if(Output1.dat[0] == 1)
-		{
-			if(Time.runFlag)
-				Ds_Control(&Time, STOP);
-		}
-		else
-		{
-			if(!Time.runFlag)
-				Ds_Control(&Time, RUN);
-		}
-		
-//		freshDisbuff();
 		if(Time.runFlag)
-			timeUpdate();
+			Ds_Control(&Time, READ);
+
+		menuUpdate(&Menu);
 	}
-}
-
-void freshDisbuff(void)
-{
-	Smg.disbuff[5] = Output1.dat[0] / 100;
-	Smg.disbuff[6] = Output1.dat[0] % 100 / 10;
-	Smg.disbuff[7] = Output1.dat[0] % 10;
-}
-
-void timeUpdate(void)
-{
-	Ds_Control(&Time, READ);
-	Smg.disbuff[0] = Time.read[2] / 10;
-	Smg.disbuff[1] = Time.read[2] % 10;
-	Smg.disbuff[2] = 10;
-	Smg.disbuff[3] = Time.read[1] / 10;
-	Smg.disbuff[4] = Time.read[1] % 10;
-	Smg.disbuff[5] = 10;
-	Smg.disbuff[6] = Time.read[0] / 10;
-	Smg.disbuff[7] = Time.read[0] % 10;
 }
 
 void timer0() interrupt 1
 {
-	if(++Key.sacnCount == 5)
+	if(++Temperature.scanCount == 100)//0.2s
+	{
+		Temperature.scanCount = 0;
+		Temperature.timeOk = 1;
+	}
+	
+	if(++Key.sacnCount == 5)//0.01s
 	{
 		Key.sacnCount = 0;
 		Key.timeOk = 1;
@@ -97,7 +86,7 @@ void timer0() interrupt 1
 	if(Key.mode == LONG)
 	{
 		led_control(7, ON);
-		if(++Key.longPressCount >= 250)//0.5s
+		if(++Key.longPressCount >= 125)//0.25s
 		{
 			Key.longPressCount = 0;
 			Key.longPressFlag = 1;
@@ -114,7 +103,7 @@ void timer0() interrupt 1
 void timer1() interrupt 3
 {
 	Count.count1++;
-	if(Count.count1 >= 250)
+	if(Count.count1 >= 250)//0.5s
 	{
 		Count.count1 = 0;
 		Flag.flag1++;

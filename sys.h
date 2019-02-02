@@ -6,7 +6,8 @@
 #define uchar unsigned char
 #define uint unsigned int
 #define uint16 unsigned short
-	
+
+//IOºê
 #define NONE 0x1f
 #define LEDS 0x80
 #define OTHS 0xA0
@@ -15,6 +16,15 @@
 
 #define RELAY 0x10
 #define BUZZ  0x40
+
+//TABºê
+#define DIS_POINT			10
+#define DIS_NONE 			20
+#define DIS_SHORT_HORIZON	21
+#define DIS_C				22
+#define DIS_F				23
+#define DIS_U				24
+
 
 #define ON  1
 #define OFF 0

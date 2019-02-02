@@ -56,7 +56,7 @@ void keyScan(void)
 	}
 }
 
-void keyProcess(KEY_t *in, OUTPUT_t *out)
+void keyProcess(KEY_t *in, MENU_t *menu)
 {
 	switch(in->mode)
 	{
@@ -67,15 +67,18 @@ void keyProcess(KEY_t *in, OUTPUT_t *out)
 				switch(in->Continue)
 				{
 					case 0xFE:
-						out->dat[0]++;
+						menu->sub[menu->mode]++;
 						break;
 					case 0xFD:
-						out->dat[0]--;
+						menu->sub[menu->mode]--;
 						break;
 					case 0xFB:
-						out->dat[0] = 0;
+						menu->sub[menu->mode] = 0;
 						break;
 					case 0xF7:
+						menu->mode++;
+						if(menu->mode >= 5)
+							menu->mode = 0;
 						break;
 					case 0xFF:
 					default:
@@ -88,18 +91,22 @@ void keyProcess(KEY_t *in, OUTPUT_t *out)
 			switch(in->Down)
 			{
 				case 0xFE:
-					out->dat[0]++;
+					menu->sub[menu->mode]++;
 					in->Down = 0xFF;
 					break;
 				case 0xFD:
-					out->dat[0]--;
+					menu->sub[menu->mode]--;
 					in->Down = 0xFF;
 					break;
 				case 0xFB:
-					out->dat[0] = 0;
+					menu->sub[menu->mode] = 0;
 					in->Down = 0xFF;
 					break;
 				case 0xF7:
+					menu->mode++;
+					if(menu->mode >= 5)
+						menu->mode = 0;
+					in->Down = 0xFF;
 					break;
 				case 0xFF:
 				default:
@@ -111,21 +118,26 @@ void keyProcess(KEY_t *in, OUTPUT_t *out)
 			switch(in->Release)
 			{
 				case 0xFE:
-					out->dat[0]++;
+					menu->sub[menu->mode]++;
 					in->lastRead = 0xFF;
 					in->Release = 0xFF;
 					break;
 				case 0xFD:
-					out->dat[0]--;
+					menu->sub[menu->mode]--;
 					in->lastRead = 0xFF;
 					in->Release = 0xFF;
 					break;
 				case 0xFB:
-					out->dat[0] = 0;
+					menu->sub[menu->mode] = 0;
 					in->lastRead = 0xFF;
 					in->Release = 0xFF;
 					break;
 				case 0xF7:
+					menu->mode++;
+					if(menu->mode >= 5)
+						menu->mode = 0;
+					in->lastRead = 0xFF;
+					in->Release = 0xFF;
 					break;
 				case 0xFF:
 				default:
