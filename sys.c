@@ -6,14 +6,15 @@ uchar tab[] = {0xc0,0xf9,0xa4,0xb0,0x99,0x92,0x82,0xf8,0x80,0x90,\
 				0xff,0xbf,0xc6,0x8E,0xC1};
 
 SMG_t Smg = {0, 11,11,11,11,11,11,11,11};
-LED_t Led = {0xFF, 0x00};
-LED_t RelayOrBuzz = {0x00, 0x00};
+LED_t Led = {0xFF, 0x00, 0,0,0, 0,0,0};
+LED_t RelayOrBuzz = {0x00, 0x00, 0,0,0, 0,0,0};
 
 void sysInit(void)
 {
 	IOinit();
 	Timer0Init();
 	Timer1Init();
+//	Timer2Init();
 	EA = 1;
 }
 
@@ -40,14 +41,39 @@ void Timer0Init(void)		//2毫秒@11.0592MHz
 
 void Timer1Init(void)		//2毫秒@11.0592MHz
 {
+//	AUXR |= 0x40;		//定时器时钟1T模式
+//	TMOD &= 0x0F;		//设置定时器模式
+//	TL1 = 0x9A;		//设置定时初值
+//	TH1 = 0xA9;		//设置定时初值
+//	TF1 = 0;		//清除TF1标志
+//	TR1 = 1;		//定时器1开始计时
+//	ET1 = 1;		//使能定时器1中断
+	
 	AUXR |= 0x40;		//定时器时钟1T模式
-	TMOD &= 0x0F;		//设置定时器模式
-	TL1 = 0x9A;		//设置定时初值
-	TH1 = 0xA9;		//设置定时初值
-	TF1 = 0;		//清除TF1标志
+	TMOD |= 0x50;	//设置定时器模式
+	IT1 = 1;		//下降沿触发
+	TL1 = 0x00;		//设置定时初值
+	TH1 = 0x00;		//设置定时初值
 	TR1 = 1;		//定时器1开始计时
-	ET1 = 1;		//使能定时器1中断
 }
+
+void Timer2Init(void)		//@11.0592MHz//输入捕获
+{
+	AUXR |= 0x04;		//定时器时钟1T模式
+	AUXR |= 0x08;
+	T2L = 0x00;		//设置定时初值
+	T2H = 0x00;		//设置定时初值
+	AUXR |= 0x10;		//定时器2开始计时
+}
+
+void Timer2ReInit(void)//输入捕获
+{
+	AUXR &= ~0x10;	//关计时
+	T2L = 0x00;		//设置定时初值
+	T2H = 0x00;		//设置定时初值
+	AUXR |= 0x10;	//开计时
+}
+
 
 void display()
 {

@@ -66,7 +66,7 @@ unsigned char Read_DS18B20(void)
 	return dat;
 }
 
-void temp_read(TEMP_t *temperature)
+uchar temp_read(TEMP_t *temperature)
 {
 	if(!Init_DS18B20())
 	{
@@ -91,6 +91,7 @@ void temp_read(TEMP_t *temperature)
 	temperature->high = Read_DS18B20();
 	
 	temperature->integer = (temperature->high << 4) | (temperature->low >> 4);
+	
 	if(temperature->integer > 0x80)
 	{
 		temperature->sign = 1;
@@ -107,4 +108,6 @@ void temp_read(TEMP_t *temperature)
 								((temperature->low&0x01)?1:0)*625;
 	
 	temperature->fraction = temperature->fraction_temp / 1000;
+	
+	return temperature->integer;
 }

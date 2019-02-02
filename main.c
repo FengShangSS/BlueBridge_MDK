@@ -2,6 +2,7 @@
 #include "keyscan.h"
 #include "ds1302.h"
 #include "onewire.h"
+#include "iic.h"
 
 /*------------------------------------------------------------------
 -------------------------V0.0.1-----------------------------------
@@ -37,22 +38,81 @@ Menu.sub[]
 menuUpdate(MENU_t *menu)
 freshDisbuff(SMG_t *smg)
 
+-------------------------V0.0.5-----------------------------------
+DATE:2019.2.03		TIME:00:40		AUTHOR:FS
+USAGE:
+eeprom_SingleWrite(uchar add, uchar dat);
+eeprom_SingleRead(uchar add);	
+adc_Init(void);
+adc_read(void);
+dac_write(uchar dat);
+
 -------------------------------------------------------------------*/
 
 
-COUNT_t Count;
-FLAG_t Flag;
+uint systick;
+uchar index;
 
 void main()
 {
 	sysInit();
 	Ds_Control(&Time, WRITE);
+	Eeprom.dat[0] = eeprom_SingleRead(0x00);
+	Eeprom.dat[1] = eeprom_SingleRead(0x01);
+	Eeprom.dat[2] = eeprom_SingleRead(0x02);
+	Eeprom.dat[3] = eeprom_SingleRead(0x03);
+	Eeprom.dat[4] = eeprom_SingleRead(0x04);
+	
 	while(1)
 	{
+		if(Fre.timeOk == 1)
+		{
+			Fre.timeOk = 0;
+			Fre.high = TH1;
+			Fre.low = TL1;
+			Fre.integer = Fre.high * 256 + Fre.low;
+			TH1 = TL1 = 0;
+		}
+		
+		if(Adc.timeOk == 1)
+		{
+			Adc.timeOk = 0;
+			adc_Init();
+			Adc.read = adc_read();
+			dac_write(Adc.read);
+			Adc.f_temp = Adc.read / 255. * 5;
+			Adc.integer = Adc.f_temp;
+			Adc.fraction = (Adc.f_temp - Adc.integer) * 100;
+		}
+		
 		if(Temperature.timeOk == 1)
 		{
+			uchar i;
 			Temperature.timeOk = 0;
-			temp_read(&Temperature);
+			for(i = 0; i < 4; i++)
+				Temperature.integer_temp[i] = temp_read(&Temperature);
+			
+			Temperature.integer_temp[4] = Temperature.integer_temp[0] + Temperature.integer_temp[1] +\
+											Temperature.integer_temp[2] + Temperature.integer_temp[3];
+			
+			Temperature.integer_temp[4] /= 4;
+			
+			Temperature.integer = Temperature.integer_temp[4];
+			
+			if(systick < 500 * 10)
+				Temperature.integer_last = Temperature.integer;
+			else
+			{
+				if(Temperature.integer_last - Temperature.integer < -2 || Temperature.integer_last - Temperature.integer > 2)
+					Temperature.integer = Temperature.integer_last;
+				
+//				if(Temperature.integer <= 20)
+//					relay_or_buzzer(RELAY, ON);
+//				else
+//					relay_or_buzzer(RELAY, OFF);
+				
+				Temperature.integer_last = Temperature.integer;
+			}
 		}
 		
 		if(Key.timeOk == 1)
@@ -63,22 +123,64 @@ void main()
 		}
 		
 		if(Time.runFlag)
+		{
 			Ds_Control(&Time, READ);
-
+			if(Time.read[0] == 59 && Time.read[1] == 59)
+			{
+				switch(Time.read[2])
+				{
+					case 1:
+						eeprom_SingleWrite(0x00, Temperature.integer);
+						break;
+					case 2:
+						eeprom_SingleWrite(0x01, Temperature.integer);
+						break;
+					case 3:
+						eeprom_SingleWrite(0x02, Temperature.integer);
+						break;
+					case 4:
+						eeprom_SingleWrite(0x03, Temperature.integer);
+						break;
+					case 5:
+						eeprom_SingleWrite(0x04, Temperature.integer);
+						break;
+					default:
+						break;
+				}
+				
+			}
+		}
+		
 		menuUpdate(&Menu);
 	}
 }
+/*
 
-void timer0() interrupt 1
+*/
+void timer0() interrupt 1//2ms
 {
-	if(++Temperature.scanCount == 100)//0.2s
+	systick++;
+	if(++Fre.count >= 500)//1s
+	{
+		Fre.count = 0;
+		Fre.timeOk = 1;
+	}
+	
+	if(++Adc.scanCount >= 100)//0.2s
+	{
+		Adc.scanCount = 0;
+		Adc.timeOk = 1;
+	}
+	
+	if(++Temperature.scanCount >= 100)//0.2s
 	{
 		Temperature.scanCount = 0;
 		Temperature.timeOk = 1;
 	}
 	
-	if(++Key.sacnCount == 5)//0.01s
+	if(++Key.sacnCount >= 5)//0.01s
 	{
+		P12 = ~P12;
 		Key.sacnCount = 0;
 		Key.timeOk = 1;
 	}
@@ -98,16 +200,12 @@ void timer0() interrupt 1
 		Key.longPressCount = 0;
 		Key.longPressFlag = 0;
 	}
-}
-
-void timer1() interrupt 3
-{
-	Count.count1++;
-	if(Count.count1 >= 250)//0.5s
+	
+	if(++Led.count[0] >= 250)//0.5s
 	{
-		Count.count1 = 0;
-		Flag.flag1++;
-		if(Flag.flag1&0x01 == 1)
+		Led.count[0] = 0;
+		Led.flag[0]++;
+		if(Led.flag[0]&0x01)
 		{
 			led_control(0, ON);
 //			relay_or_buzzer(RELAY, ON);
@@ -122,3 +220,8 @@ void timer1() interrupt 3
 	}
 	display();
 }
+
+//void timer1() interrupt 3////2ms
+//{
+
+//}

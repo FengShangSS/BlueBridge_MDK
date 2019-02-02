@@ -15,6 +15,8 @@ typedef struct
 	uint16 fraction_temp;
 	uchar integer;
 	uchar fraction;
+	uchar integer_temp[5];
+	uchar integer_last;
 	
 	uchar scanCount;
 	uchar timeOk;
@@ -29,6 +31,6 @@ void Delay_OneWire(unsigned int t);
 void Write_DS18B20(unsigned char dat);
 bit Init_DS18B20(void);
 unsigned char Read_DS18B20(void);
-void temp_read(TEMP_t *temperature);
+uchar temp_read(TEMP_t *temperature);
 
 #endif

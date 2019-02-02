@@ -33,6 +33,8 @@ typedef struct
 {
 	uchar status;
 	uchar bit_temp;
+	uchar count[3];
+	uchar flag[3];
 }LED_t;
 
 typedef struct 
@@ -41,36 +43,15 @@ typedef struct
 	uchar disbuff[8];
 }SMG_t;
 
-typedef struct 
-{
-	uchar flag0;
-	uchar flag1;
-	uchar flag2;
-	uchar flag3;
-	uchar flag4;
-	uchar flag5;
-	uchar flag6;
-	uchar flag7;
-}FLAG_t;
-
-typedef struct 
-{
-	uint count0;
-	uint count1;
-	uint count2;
-	uint count3;
-	uint count4;
-	uint count5;
-	uint count6;
-	uint count7;
-}COUNT_t;
-
+extern LED_t Led;
 extern SMG_t Smg;
 
 void sysInit(void);
 void IOinit(void);
 void Timer0Init(void);
 void Timer1Init(void);
+void Timer2Init(void);
+void Timer2ReInit(void);// ‰»Î≤∂ªÒ
 void display(void);
 void led_control(uchar ledbit, uchar command);
 void relay_or_buzzer(uchar choice, uchar command);
