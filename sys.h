@@ -24,10 +24,13 @@
 #define DIS_C				22
 #define DIS_F				23
 #define DIS_U				24
-
+#define DIS_L				25
 
 #define ON  1
 #define OFF 0
+
+#define TIME1FRE 1
+#define TIME1LEN 2
 
 typedef struct 
 {
@@ -43,17 +46,27 @@ typedef struct
 	uchar disbuff[8];
 }SMG_t;
 
+typedef struct 
+{
+	uchar init;
+	uchar done;
+}TIME1FLAG_t;
+
 extern LED_t Led;
 extern SMG_t Smg;
+extern TIME1FLAG_t Time1Flag;
 
 void sysInit(void);
 void IOinit(void);
 void Timer0Init(void);
-void Timer1Init(void);
+void Timer1Init(uchar command);
 void Timer2Init(void);
 void Timer2ReInit(void);// ‰»Î≤∂ªÒ
+void UartInit(void);
 void display(void);
 void led_control(uchar ledbit, uchar command);
 void relay_or_buzzer(uchar choice, uchar command);
+void trans_char(char t);
+void trans_str(char t[]);
 
 #endif

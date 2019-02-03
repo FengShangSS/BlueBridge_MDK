@@ -1,8 +1,5 @@
 #include "menu.h"
 #include "keyscan.h"
-#include "ds1302.h"
-#include "onewire.h"
-#include "iic.h"
 
 /*------------------------------------------------------------------
 -------------------------V0.0.1-----------------------------------
@@ -47,11 +44,19 @@ adc_Init(void);
 adc_read(void);
 dac_write(uchar dat);
 
+-------------------------V0.0.6-----------------------------------
+DATE:2019.2.03		TIME:21:49		AUTHOR:FS
+USAGE:
+send_wave();
+read_distance(&Sonic);
+
 -------------------------------------------------------------------*/
 
 
 uint systick;
 uchar index;
+char rechar;
+uint16 pwmCount;
 
 void main()
 {
@@ -65,6 +70,13 @@ void main()
 	
 	while(1)
 	{
+		if(Sonic.timeOk == 1)
+		{
+			Sonic.timeOk = 0;
+			send_wave();
+			read_distance(&Sonic);
+		}
+		
 		if(Fre.timeOk == 1)
 		{
 			Fre.timeOk = 0;
@@ -87,32 +99,33 @@ void main()
 		
 		if(Temperature.timeOk == 1)
 		{
-			uchar i;
+//			uchar i;
 			Temperature.timeOk = 0;
-			for(i = 0; i < 4; i++)
-				Temperature.integer_temp[i] = temp_read(&Temperature);
-			
-			Temperature.integer_temp[4] = Temperature.integer_temp[0] + Temperature.integer_temp[1] +\
-											Temperature.integer_temp[2] + Temperature.integer_temp[3];
-			
-			Temperature.integer_temp[4] /= 4;
-			
-			Temperature.integer = Temperature.integer_temp[4];
-			
-			if(systick < 500 * 10)
-				Temperature.integer_last = Temperature.integer;
-			else
-			{
-				if(Temperature.integer_last - Temperature.integer < -2 || Temperature.integer_last - Temperature.integer > 2)
-					Temperature.integer = Temperature.integer_last;
-				
-//				if(Temperature.integer <= 20)
-//					relay_or_buzzer(RELAY, ON);
-//				else
-//					relay_or_buzzer(RELAY, OFF);
-				
-				Temperature.integer_last = Temperature.integer;
-			}
+			temp_read(&Temperature);
+//			for(i = 0; i < 4; i++)
+//				Temperature.integer_temp[i] = temp_read(&Temperature);
+//			
+//			Temperature.integer_temp[4] = Temperature.integer_temp[0] + Temperature.integer_temp[1] +\
+//											Temperature.integer_temp[2] + Temperature.integer_temp[3];
+//			
+//			Temperature.integer_temp[4] /= 4;
+//			
+//			Temperature.integer = Temperature.integer_temp[4];
+//			
+//			if(systick < 500 * 10)
+//				Temperature.integer_last = Temperature.integer;
+//			else
+//			{
+//				if(Temperature.integer_last - Temperature.integer < -2 || Temperature.integer_last - Temperature.integer > 2)
+//					Temperature.integer = Temperature.integer_last;
+//				
+////				if(Temperature.integer <= 20)
+////					relay_or_buzzer(RELAY, ON);
+////				else
+////					relay_or_buzzer(RELAY, OFF);
+//				
+//				Temperature.integer_last = Temperature.integer;
+//			}
 		}
 		
 		if(Key.timeOk == 1)
@@ -160,10 +173,39 @@ void main()
 void timer0() interrupt 1//2ms
 {
 	systick++;
+	
+	if(pwmCount <= 10)
+	{
+		pwmCount++;
+		if(pwmCount <= 1)
+			led_control(5, ON);
+		else
+			led_control(5, OFF);
+		
+		if(pwmCount <= 3)
+			led_control(6, ON);
+		else
+			led_control(6, OFF);
+	}
+	else
+		pwmCount = 0;
+	
+	if(++Sonic.scanCount >= 200)//0.4s
+	{
+		Sonic.scanCount = 0;
+		if(Time1Flag.done == TIME1LEN)
+			Sonic.timeOk = 1;
+		else
+			Sonic.timeOk = 0;
+	}
+	
 	if(++Fre.count >= 500)//1s
 	{
 		Fre.count = 0;
-		Fre.timeOk = 1;
+		if(Time1Flag.done == TIME1FRE)
+			Fre.timeOk = 1;
+		else
+			Fre.timeOk = 0;
 	}
 	
 	if(++Adc.scanCount >= 100)//0.2s
@@ -172,7 +214,7 @@ void timer0() interrupt 1//2ms
 		Adc.timeOk = 1;
 	}
 	
-	if(++Temperature.scanCount >= 100)//0.2s
+	if(++Temperature.scanCount >= 200)//0.4s
 	{
 		Temperature.scanCount = 0;
 		Temperature.timeOk = 1;
@@ -221,7 +263,10 @@ void timer0() interrupt 1//2ms
 	display();
 }
 
-//void timer1() interrupt 3////2ms
-//{
-
-//}
+void uart_isr() interrupt 4
+{	
+	led_control(4, ON);
+	RI = 0;
+	rechar = SBUF;
+	trans_char(rechar);	  	//—È÷§ 
+}

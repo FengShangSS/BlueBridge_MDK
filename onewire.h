@@ -12,9 +12,11 @@ typedef struct
 	uchar high;
 	uchar low;
 	uchar sign;
-	uint16 fraction_temp;
+	float read;
+	uint16 read_temp;
 	uchar integer;
 	uchar fraction;
+
 	uchar integer_temp[5];
 	uchar integer_last;
 	
@@ -31,6 +33,6 @@ void Delay_OneWire(unsigned int t);
 void Write_DS18B20(unsigned char dat);
 bit Init_DS18B20(void);
 unsigned char Read_DS18B20(void);
-uchar temp_read(TEMP_t *temperature);
+void temp_read(TEMP_t *temperature);
 
 #endif

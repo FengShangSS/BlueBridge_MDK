@@ -4,13 +4,15 @@
 #include "ds1302.h"
 #include "onewire.h"
 #include "iic.h"
+#include "sonic.h"
 
 #define UI_TIME		 0
 #define UI_TEMP 	 1
 #define UI_VOLTAGE 	 2
 #define UI_FREQUENCY 3
-#define UI_RECORD 	 4
-#define UI_AUTO		 5
+#define UI_LENGTH	 4
+#define UI_RECORD 	 5
+#define UI_AUTO		 6
 
 typedef struct
 {

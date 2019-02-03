@@ -438,6 +438,16 @@
               <FileType>5</FileType>
               <FilePath>.\iic.h</FilePath>
             </File>
+            <File>
+              <FileName>sonic.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\sonic.c</FilePath>
+            </File>
+            <File>
+              <FileName>sonic.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\sonic.h</FilePath>
+            </File>
           </Files>
         </Group>
       </Groups>

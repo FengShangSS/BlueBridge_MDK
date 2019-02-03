@@ -78,7 +78,7 @@ void keyProcess(KEY_t *in, MENU_t *menu)
 						break;
 					case 0x07:
 						menu->mode++;
-						if(menu->mode >= 5)
+						if(menu->mode >= 7)
 							menu->mode = 0;
 						break;
 					case 0x0F:
@@ -105,7 +105,7 @@ void keyProcess(KEY_t *in, MENU_t *menu)
 					break;
 				case 0x07:
 					menu->mode++;
-					if(menu->mode >= 5)
+					if(menu->mode >= 7)
 						menu->mode = 0;
 					in->Down = 0xFF;
 					break;
@@ -135,7 +135,7 @@ void keyProcess(KEY_t *in, MENU_t *menu)
 					break;
 				case 0x07:
 					menu->mode++;
-					if(menu->mode >= 5)
+					if(menu->mode >= 7)
 						menu->mode = 0;
 					in->lastRead = 0xFF;
 					in->Release = 0xFF;

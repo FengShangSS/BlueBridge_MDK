@@ -26,6 +26,23 @@ void menuUpdate(MENU_t *menu)
 	{
 		menu->autoFlag = 1;
 	}
+	
+	if(menu->mode == UI_FREQUENCY)
+	{
+		if(Time1Flag.done != TIME1FRE)
+		{
+			Timer1Init(TIME1FRE);
+		}
+	}
+	else if(menu->mode == UI_LENGTH)
+	{
+		if(Time1Flag.done != TIME1LEN)
+		{
+			Timer1Init(TIME1LEN);
+		}
+	}
+	else
+		Timer1Init(0);
 
 	if(menu->autoFlag == 1)
 	{
@@ -96,6 +113,17 @@ void freshDisbuff(SMG_t *smg)
 		smg->disbuff[5] = Fre.integer / 100;
 		smg->disbuff[6] = Fre.integer % 100 / 10;
 		smg->disbuff[7] = Fre.integer % 10;
+	}
+	else if(Menu.mode == UI_LENGTH)
+	{
+		smg->disbuff[0] = DIS_L;
+		smg->disbuff[1] = DIS_NONE;
+		smg->disbuff[2] = DIS_NONE;
+		smg->disbuff[3] = DIS_NONE;
+		smg->disbuff[4] = DIS_NONE;
+		smg->disbuff[5] = Sonic.distance / 100;
+		smg->disbuff[6] = Sonic.distance % 100 / 10;
+		smg->disbuff[7] = Sonic.distance % 10;
 	}
 	//record
 	else if(Menu.mode == UI_RECORD)
